@@ -1,6 +1,3 @@
-from django.db import models
-
-# Create your models here.
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
 #   * Rearrange models' order
@@ -816,20 +813,6 @@ class PasswordResets(models.Model):
 
 
 
-class Payments(models.Model):
-    seller_id = models.IntegerField()
-    amount = models.FloatField()
-    payment_details = models.TextField(blank=True, null=True)
-    payment_method = models.CharField(max_length=255, blank=True, null=True)
-    txn_code = models.CharField(max_length=100, blank=True, null=True)
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'payments'
-
-
 class PersonalAccessTokens(models.Model):
     id = models.BigAutoField(primary_key=True)
     tokenable_type = models.CharField(max_length=191)
@@ -919,6 +902,8 @@ class ProductTranslations(models.Model):
 
 
 class Products(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    item_id = models.IntegerField()
     name = models.CharField(max_length=200)
     added_by = models.CharField(max_length=6)
     user_id = models.IntegerField()
@@ -1331,7 +1316,6 @@ class Wallets(models.Model):
 
 
 class Wishlists(models.Model):
-    id = models.IntegerField(primary_key=True)
     user_id = models.IntegerField()
     product_id = models.IntegerField()
     created_at = models.DateTimeField(blank=True, null=True)
