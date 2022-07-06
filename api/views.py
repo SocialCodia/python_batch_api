@@ -63,72 +63,6 @@ class ScrapView(APIView):
 
 
 class ProductsView(APIView):
-
-
-    def getx(self,request):
-        # items = ItemsStore.objects.all();
-        # for item in items:
-        try:
-            products = ProductsEcommerce.objects.using('ecommerce').get(id=1);
-            print(products)
-        except Exception as e:
-            print(e)
-        return Response({'data':str(products.name)})
-
-        # products = ProductsEcommerce.objects.all()
-        # for p in products:
-        #     item = ItemsStore.objects.get(pid=p.id)
-            
-        #     print(f'{item.itemname} and {p.name}')
-
-
-    def getsssss(self,request):
-        data = []
-        try:
-            pid = 300
-            count = ''
-            try:
-                item_store = ItemsStore.objects.get(pid__icontains=pid)
-                if item_store is None:
-                    count = 'item is none'
-                else:
-                    count = f'item is not none {item_store.itemname}'
-                print("item_id_store",count);
-            except Exception as e:
-                item_store = ItemsStore.objects.filter(pid__contains=pid)
-                for item in item_store:
-                    print(item.itemname)
-
-            # products = ProductsEcommerce.objects.all().using('ecommerce');
-            # for product in products:
-            #     name = product.name.split(' ',1)[1]
-            #     # name = name.upper()
-            #     if "Syrup" in name:
-            #         name = name.rsplit(' ',1)[0]
-                
-            #     if "Tablet" in name:
-            #         name = name.rsplit(' ',1)[0]
-                
-            #     if "Capsule" in name:
-            #         name = name.rsplit(' ',1)[0]
-            #     try:
-            #         item = ItemsStore.objects.get(itemname__iexact=name.strip())
-            #         if item is not None:
-            #             if item.pid != 0:
-            #                 print(f"{name} already stored")
-            #             else:
-            #                 item.pid = product.id
-            #                 item.save()
-            #                 print(f'Product Name is {name} and Item Name is {item.itemname} saved')
-
-            #     except Exception as e:
-            #         # print(e)
-            #         print(name)
-            #         continue
-
-        except Exception as e:
-            print(e);
-        return Response({'data':count})
     
     def get(self,request):
         three_days = datetime.now() - timedelta(hours=72)
@@ -138,11 +72,9 @@ class ProductsView(APIView):
 
         try:
             stocks = ProductStocksEcommerce.objects.all().using("ecommerce")
-            print(f"Stocks  Count Is ",stocks.count())
             for stk in stocks:
                 pid = stk.product_id
                 variant = stk.variant
-                # print(f"Product id is : {pid}, variant is {variant}")
                 try:
                     products_ecommerce = ProductsEcommerce.objects.using("ecommerce").get(id=pid)
                     item_id_store = products_ecommerce.item_id
@@ -155,16 +87,7 @@ class ProductsView(APIView):
                         product_price_final = 0
                         brands_ecommerce = BrandsEcommerce.objects.using("ecommerce").get(id=products_ecommerce.brand_id)
                         brand_name_ecommerce = brands_ecommerce.short_name    #need to change it to brandshort name later, coz the model is not yet ready to handle the brand short name
-                        
-                        # try:
-                        #     # item_store = ItemsStore.objects.get(pid__icontains=pid)
-                        #     item_store = ProductsEcommerce.objects.using('ecommerce').get(id=pid)
-                        #     item_id_store = item_store.item_id;
-                        #     print(f"item_id_store",str(item_id_store));
-                        # except Exception as e:
-                        #     print(f"Exception while fetching the item from store == ",e)
-                        #     continue
-                        
+                                      
                         try:
                             brand_store = BrandsStore.objects.get(brand_name__iexact=brand_name_ecommerce)
                             brand_id_store = brand_store.brand_id;
@@ -232,87 +155,4 @@ class ProductsView(APIView):
         return Response({
                 'success':True,
                 'resp':'resp'
-            })
-
-
-
-
-
-    
-    def gets(self,request):
-        three_days = datetime.now() - timedelta(hours=72)
-        exclude_list = ['cancel','delivered','picked_up','on_the_way']
-        try:
-            stocks = ProductStocksEcommerce.objects.all().using('ecommerce');                                # fetching stock from ecommerce
-            # print('============ stock is : ============',stocks)
-            for stk in stocks:
-                pid = stk.product_id
-                input_size = stk.variant
-                try:
-                    sell_count = 0
-                    product_quantity = 0
-                    largest_price = 0
-                    item = ItemsStore.objects.get(pid=pid)                                               # fetching items from management
-                    # print('============ item is : ============',item)
-                    size = SizesStore.objects.get(size_name__iexact=input_size)                          # fetching size from management
-                    # print('============ size is : ============',size)
-                    product = ProductsStore.objects.filter(item_id=item.itemid,size_id=size.size_id);    # fetching product from management
-                    # print('============ product is : ============',product)
-                    
-                    for p in product:
-                        try:
-                            order_details = OrderDetailsEcommerce.objects.filter(product_id=pid,created_at__gt=three_days,variation__iexact=input_size).using('ecommerce').exclude(delivery_status__in=exclude_list);
-                            print(f'============ order_details is : pid = {pid} , size = {input_size}, count = {order_details.count()}',)
-                            # print("order_details query is : ",order_details.query)
-                            if order_details.count() > 0:
-                                continue
-                        except Exception as e:
-                            print("Exception is : ",e)
-                            continue
-                        if p.product_price > largest_price:
-                            largest_price = p.product_price
-                        try:
-                            sales = SellsStore.objects.filter(product_id=p.product_id)
-                            # print('============ sales is : ============',sales)
-                            print('============ sales is1 : ============',sales.count(),p.product_quantity)
-                            if (sales.count()<1):
-                                product_quantity = p.product_quantity
-                                continue
-                            for s in sales:
-                                sell_count += s.sell_quantity
-                                product_quantity += p.product_quantity
-                        except Exception as e:
-                            print("Exception is : ",e)
-                            continue
-
-                    quantity = product_quantity - sell_count
-
-                    # print("product quantitiy is",quantity)
-                    # print("product largest_price is",largest_price)
-
-                    try:
-                        resp = ProductStocksEcommerce.objects.using('ecommerce').get(pk=stk.id)
-                        # print('============ resp is : ============',resp)
-                        print('----------------',product_quantity);
-                        resp.qty=product_quantity
-                        resp.price=largest_price
-                        if largest_price > 0 :
-                            resp.save()
-                    except Exception as e:
-                        print("Exception is : ",e)
-                        continue
-                except Exception as e:
-                    print("Exception is : ",e)
-                    continue
-
-            return Response({
-                'success':True,
-                'message':'Batch Executed Successfully'
-            })
-        except Exception as e:
-            print("Exception is : ",e)
-            return Response({
-                'success':True,
-                'message':'Batch Execution Failed',
-                'error':str(e)
             })
